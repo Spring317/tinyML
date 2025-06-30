@@ -35,7 +35,7 @@ pip install -r requirements.txt
 
 * Note: This implementation will deploy the model to raspberry pi 4 using ONNX framework. If you wish to deploy the model on the micro-controler, please refer to [tinyengine](https://github.com/mit-han-lab/tinyengine) repo
 
-### Training and validating:
+## Training and validating:
 
 1. Creating dataset:
 ```bash
@@ -110,5 +110,31 @@ dominant_threshold: 0.9
 
 6.  For Deploying into Raspberry Pi 4b, please refer to the deployment repo [here]()
 
+## Results:
+
+### Experimental setup:
+
+* Superclass: Insecta 
+* Dominant classes: 7 classes (Cover 50% of ther dominant species in the Insecta dataset)
+* Epoch: 50
+* Batch size: 64
+* Learning read: 0.001
+* Number of worker: 8
+* Model type: mcunet-in2
+* Image size: 160x160
+
+### Results: 
+
+#### Confusion Matrix
+![Confusion Matrix](evaluation_results/confusion_matrix.png)
+
+#### Class F1 Scores
+![Class F1 Scores](evaluation_results/class_f1_scores.png)
+
+#### Precision and Recall by Class
+![Precision and Recall](evaluation_results/precision_recall.png)
+
+#### Class Confidence Distribution
+![Class Confidence](evaluation_results/class_confidence.png)
 
 
