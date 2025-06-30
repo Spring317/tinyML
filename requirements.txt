@@ -1,4 +1,4 @@
 torch
 onnx
 onnxruntime
-dataset_preparer_inat
+dataset-builder-inat
