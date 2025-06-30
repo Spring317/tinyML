@@ -207,7 +207,7 @@ NUM_WORKERS = 8
 NUM_EPOCHS = 50
 LR = 0.001
 NAME = "mcunet_haute_garonne_10_species"
-all_data, train, val, species_labels, species_composition =  manifest_generator_wrapper(0.35)
+all_data, train, val, species_labels, species_composition =  manifest_generator_wrapper(0.3, export=True)
 NUM_SPECIES = len(species_labels.keys())
 species_names = list(species_labels.values())
 total_support_list = get_support_list(species_composition, species_names)
@@ -225,7 +225,7 @@ val_loader = DataLoader(
 )
 
 device = get_device()
-model = torch.load("./models/mcunet_haute_garonne_other_35.pth", map_location=device, weights_only=False)
+model = torch.load("/home/quydx/tinyML/models/mcunet_haute_garonne_8_species.pth", map_location=device, weights_only=False)
 model.to(device)
 
 all_preds: List[int] = []
@@ -256,4 +256,4 @@ report_df = generate_report(
 
 with pd.option_context("display.max_rows", None, "display.max_columns", None):
     # print(report_df)
-    report_df.to_csv("./test_mcunet_other_30.csv")
+    report_df.to_csv("./test_mcunet_haute_garonne_8_species.csv")

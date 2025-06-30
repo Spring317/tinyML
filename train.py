@@ -204,15 +204,32 @@ NUM_WORKERS = 8
 NUM_EPOCHS = 50
 LR = 0.001
 
-_, train, val, species_labels, _=  manifest_generator_wrapper(0.2, export=True)
+_, train, val, species_labels, _=  manifest_generator_wrapper(0.5, export=True)
+# #save train list
+# #save train and val lists to pickle files
+# with open("train_list.pkl", "wb") as f:
+#     pickle.dump(train, f)
+
+# with open("val_list.pkl", "wb") as f:
+#     pickle.dump(val, f)
+
+# with open("species_labels.pkl", "wb") as f:
+#     pickle.dump(species_labels, f)
+    
+# train_dataset = CustomDataset(train, train=True, img_size=(160, 160))
+# #convert from torch to numpy array
+
+# # torch.save(train_dataset, "train_dataset.pt")
+# # train_dataset.save_dataset("train_dataset.pkl")
+
 NUM_SPECIES = len(species_labels.keys())
 
 print(f"Number of species: {NUM_SPECIES}")
 NAME = f"mcunet_haute_garonne_{NUM_SPECIES}_species"
 print(f"species_labels: {species_labels.keys()}")
-
 train_dataset = CustomDataset(train, train=True, img_size=(160, 160))
 val_dataset = CustomDataset(val, train=False, img_size=(160, 160))
+torch.save(val_dataset, "val_dataset.pt")
 
 train_loader = DataLoader(
     train_dataset,
@@ -250,7 +267,7 @@ for epoch in range(NUM_EPOCHS):
     val_loss, val_acc, macro_f1 = train_validate(model, val_loader, criterion, device)
     scheduler.step()
     print(f"[Epoch {epoch + 1}/{NUM_EPOCHS}] Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | Val Loss: {val_loss:.4f} Val acc: {val_acc:.4f} Val F1: {macro_f1:.4f}")
-    if val_acc > best_acc:
+    if macro_f1 > best_f1 or (macro_f1 == best_f1 and val_acc > best_acc):
         start_save = time.perf_counter()
         best_acc = val_acc
         best_f1 = macro_f1

@@ -47,7 +47,6 @@ def validate_onnx_model(
     return acc, macro_f1
 
 
-all_data, _, _, _, _ = manifest_generator_wrapper(1.0, export=True)
+all_data, _, _, _, _ = manifest_generator_wrapper(0.3, export=True)
 
-
-validate_onnx_model("models/mcunet_haute_garonne_10_species.onnx", all_data)
+validate_onnx_model("models/mcunet_haute_garonne_8_species_infer_q8.onnx", all_data)

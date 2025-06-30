@@ -14,8 +14,10 @@ class CustomDataset(Dataset):
         self,
         data: Union[str, List[Tuple[str, int]]],
         train: bool = True,
-        img_size: Tuple[int, int] = (224, 224),
+        img_size: Tuple[int, int] = (50, 50),
+        
     ):
+        super().__init__()
         if isinstance(data, str):
             self.image_label_with_correct_labels = load_manifest_parquet(data)
         else:
