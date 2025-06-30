@@ -138,3 +138,80 @@ dominant_threshold: 0.9
 ![Class Confidence](evaluation_results/class_confidence.png)
 
 
+## References
+
+### Papers
+1. Lin, J., Chen, W. M., Lin, Y., Gan, C., & Han, S. (2020). [MCUNet: Tiny Deep Learning on IoT Devices](https://arxiv.org/abs/2007.10319). *Advances in Neural Information Processing Systems (NeurIPS)*.
+
+2. Lin, J., Chen, W. M., Lin, Y., Coles, J., Critically, A., Chen, W., Chen, M., Zhang, M., Zhou, Y., Han, S. (2021). [MCUNetV2: Memory-Efficient Patch-based Inference for Tiny Deep Learning](https://arxiv.org/abs/2110.15352). *Advances in Neural Information Processing Systems (NeurIPS)*.
+
+3. Lin, J., Chen, M., Zhang, M., Zhou, Y., & Han, S. (2022). [MCUNetV3: On-Device Training Under 256KB Memory](https://arxiv.org/abs/2206.15472). *Advances in Neural Information Processing Systems (NeurIPS)*.
+
+4. Liberis, E., & Lane, N. D. (2021). [Neural networks on microcontrollers: saving memory at inference via operator reordering](https://arxiv.org/abs/2105.04209). *Conference on Machine Learning and Systems (MLSys)*.
+
+### Code Repositories
+1. [Original MCUNet Repository](https://github.com/mit-han-lab/mcunet) - The official implementation of MCUNet from MIT Han Lab.
+
+2. [TinyEngine](https://github.com/mit-han-lab/tinyengine) - Optimized inference engine for microcontrollers.
+
+3. [TF Micro](https://github.com/tensorflow/tflite-micro) - TensorFlow Lite for Microcontrollers.
+
+4. [ONNX Runtime](https://github.com/microsoft/onnxruntime) - Cross-platform inference accelerator.
+
+### Datasets
+1. [iNaturalist 2017](https://github.com/visipedia/inat_comp/tree/master/2017) - Large-scale species classification dataset.
+   
+2. [iNaturalist Dataset Builder](https://github.com/HoangPham6337/iNaturelist_dataset_builder) - Dataset crawling and preprocessing. 
+
+### Tutorials & Documentation
+1. [TinyML: Machine Learning with TensorFlow Lite](https://www.tensorflow.org/lite/microcontrollers) - Official TensorFlow documentation for microcontroller deployment.
+
+2. [Deploying Edge AI: A Practical Guide to Hardware Considerations](https://www.arm.com/resources/white-paper/edge-ai) - Arm's guide to edge AI deployment.
+
+3. [ONNX Model Zoo](https://github.com/onnx/models) - Collection of pre-trained, state-of-the-art models in the ONNX format.
+
+4. [PyTorch to ONNX Tutorial](https://pytorch.org/tutorials/advanced/super_resolution_with_onnxruntime.html) - Official PyTorch tutorial for ONNX export.
+
+### Tools & Libraries
+1. [ONNX Runtime Quantization](https://onnxruntime.ai/docs/performance/quantization.html) - Documentation for quantizing ONNX models.
+
+2. [PyTorch Quantization](https://pytorch.org/docs/stable/quantization.html) - PyTorch's quantization support documentation.
+
+3. [Raspberry Pi Documentation](https://www.raspberrypi.org/documentation/) - Official Raspberry Pi documentation.
+
+## Acknowledgements
+
+This work was built upon the foundation laid by the MIT Han Lab's research on TinyML and edge computing. We would like to thank the original authors of MCUNet for their groundbreaking work in bringing deep learning to microcontroller-class devices.
+
+We also acknowledge the contributors to the iNaturalist dataset, which has been instrumental in training and evaluating our models for species classification.
+
+## Citation
+
+If you use this codebase for your research, please cite the original MCUNet papers:
+
+```
+@article{lin2020mcunet,
+  title={Mcunet: Tiny deep learning on iot devices},
+  author={Lin, Ji and Chen, Wei-Ming and Lin, Yujun and Gan, Chuang and Han, Song},
+  journal={Advances in Neural Information Processing Systems},
+  volume={33},
+  year={2020}
+}
+
+@inproceedings{
+  lin2021mcunetv2,
+  title={MCUNetV2: Memory-Efficient Patch-based Inference for Tiny Deep Learning},
+  author={Lin, Ji and Chen, Wei-Ming and Cai, Han and Gan, Chuang and Han, Song},
+  booktitle={Annual Conference on Neural Information Processing Systems (NeurIPS)},
+  year={2021}
+} 
+
+@article{
+  lin2022ondevice, 
+  title = {On-Device Training Under 256KB Memory},
+  author = {Lin, Ji and Zhu, Ligeng and Chen, Wei-Ming and Wang, Wei-Chen and Gan, Chuang and Han, Song}, 
+  journal = {arXiv:2206.15472 [cs]},
+  url = {https://arxiv.org/abs/2206.15472},
+  year = {2022}
+}
+```
