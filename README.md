@@ -108,7 +108,7 @@ dominant_threshold: 0.9
    python3 quantize.py
 ```
 
-6.  For Deploying into Raspberry Pi 4b, please refer to the deployment repo [here]()
+6.  For Deploying into Raspberry Pi 4b, please refer to the deployment repo [here](https://github.com/Spring317/mcunet-onnx-deploy)
 
 ## Results:
 
