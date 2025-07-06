@@ -1,6 +1,7 @@
 import time
 import os
-from typing import Tuple
+import argparse
+from typing import Tuple, Dict, Any
 
 import torch
 from sklearn.metrics import (
@@ -199,81 +200,131 @@ def save_model(
     print(f"Exported ONNX model to {onnx_path}")
     
 
-BATCH_SIZE = 64
-NUM_WORKERS = 8
-NUM_EPOCHS = 50
-LR = 0.001
-
-_, train, val, species_labels, _=  manifest_generator_wrapper(0.5, export=True)
-# #save train list
-# #save train and val lists to pickle files
-# with open("train_list.pkl", "wb") as f:
-#     pickle.dump(train, f)
-
-# with open("val_list.pkl", "wb") as f:
-#     pickle.dump(val, f)
-
-# with open("species_labels.pkl", "wb") as f:
-#     pickle.dump(species_labels, f)
+def parse_args() -> Dict[str, Any]:
+    """
+    Parse command line arguments for the training script.
     
-# train_dataset = CustomDataset(train, train=True, img_size=(160, 160))
-# #convert from torch to numpy array
+    Returns:
+        Dict[str, Any]: Dictionary containing the parsed arguments
+    """
+    parser = argparse.ArgumentParser(description='Train MCUNet models for TinyML applications')
+    
+    # Training parameters
+    parser.add_argument('--epochs', type=int, default=50,
+                       help='Number of training epochs (default: 50)')
+    parser.add_argument('--batch_size', type=int, default=64,
+                       help='Training batch size (default: 64)')
+    parser.add_argument('--lr', type=float, default=0.001,
+                       help='Learning rate (default: 0.001)')
+    parser.add_argument('--workers', type=int, default=8,
+                       help='Number of data loader workers (default: 8)')
+    
+    # Model selection
+    parser.add_argument('--model', type=str, default='mcunet-in2', 
+                       choices=['mcunet-in1', 'mcunet-in2', 'mcunet-in4', 'mcunet-in5', 'mcunet-in6'],
+                       help='MCUNet model variant (default: mcunet-in2)')
+    
+    # Dataset parameters
+    parser.add_argument('--threshold', type=float, default=0.5,
+                       help='Dominance threshold for dataset selection (default: 0.5)')
+    parser.add_argument('--img_size', type=int, nargs=2, default=[160, 160],
+                       help='Image size for training (height, width) (default: 160 160)')
+    
+    # Output parameters
+    parser.add_argument('--output_dir', type=str, default='models',
+                       help='Directory to save trained models (default: models)')
+    
+    # Parse the arguments
+    args = parser.parse_args()
+    return vars(args)  # Convert to dictionary
 
-# # torch.save(train_dataset, "train_dataset.pt")
-# # train_dataset.save_dataset("train_dataset.pkl")
+# Now replace your hardcoded parameters with the command-line arguments
+if __name__ == "__main__":
+    # Parse command-line arguments
+    args = parse_args()
+    
+    # Training parameters
+    BATCH_SIZE = args['batch_size']
+    NUM_WORKERS = args['workers']
+    NUM_EPOCHS = args['epochs']
+    LR = args['lr']
+    
+    # Model parameters
+    MODEL_NAME = args['model']
+    IMG_SIZE = tuple(args['img_size'])
+    OUTPUT_DIR = args['output_dir']
+    
+    # Dataset parameters
+    DOMINANCE_THRESHOLD = args['threshold']
+    
+    print(f"Training with parameters:")
+    print(f"  Model: {MODEL_NAME}")
+    print(f"  Epochs: {NUM_EPOCHS}")
+    print(f"  Batch Size: {BATCH_SIZE}")
+    print(f"  Image Size: {IMG_SIZE}")
+    print(f"  Learning Rate: {LR}")
+    print(f"  Dominance Threshold: {DOMINANCE_THRESHOLD}")
+    
+    # Load dataset with threshold
+    _, train, val, species_labels, _ = manifest_generator_wrapper(DOMINANCE_THRESHOLD, export=True)
 
-NUM_SPECIES = len(species_labels.keys())
-
-print(f"Number of species: {NUM_SPECIES}")
-NAME = f"mcunet_haute_garonne_{NUM_SPECIES}_species"
-print(f"species_labels: {species_labels.keys()}")
-train_dataset = CustomDataset(train, train=True, img_size=(160, 160))
-val_dataset = CustomDataset(val, train=False, img_size=(160, 160))
-torch.save(val_dataset, "val_dataset.pt")
-
-train_loader = DataLoader(
-    train_dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=True,
-    num_workers=NUM_WORKERS,
-    pin_memory=True,
-    persistent_workers=True,
-)
-val_loader = DataLoader(
-    val_dataset,
-    batch_size=BATCH_SIZE,
-    shuffle=False,
-    num_workers=NUM_WORKERS,
-    pin_memory=True,
-    persistent_workers=True,
-)
-
-model, image_size, description = build_model(net_id="mcunet-in2", pretrained=True)  # you can replace net_id with any other option from net_id_list
-in_features = model.classifier.linear.in_features
-model.classifier.linear = torch.nn.Linear(in_features, NUM_SPECIES)
-
-# === Optimizer + Scheduler ===
-criterion = torch.nn.CrossEntropyLoss()
-optimizer = Adam(model.parameters(), lr=LR)
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
-device = get_device()
-model.to(device)
-
-best_acc = -1.0
-best_f1 = -1.0
-for epoch in range(NUM_EPOCHS):
-    start = time.perf_counter()
-    train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
-    val_loss, val_acc, macro_f1 = train_validate(model, val_loader, criterion, device)
-    scheduler.step()
-    print(f"[Epoch {epoch + 1}/{NUM_EPOCHS}] Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | Val Loss: {val_loss:.4f} Val acc: {val_acc:.4f} Val F1: {macro_f1:.4f}")
-    if macro_f1 > best_f1 or (macro_f1 == best_f1 and val_acc > best_acc):
-        start_save = time.perf_counter()
-        best_acc = val_acc
-        best_f1 = macro_f1
-        save_model(model, f"{NAME}", "models", device, (160, 160))
-        end_save = time.perf_counter()
-        print(f"Save time: {end_save - start_save:.2f}s")
-    end = time.perf_counter()
-    print(f"Total time: {end - start:.2f}s")
-print(f"Best accuracy: {best_acc} with F1-score: {best_f1}")
+    NUM_SPECIES = len(species_labels.keys())
+    
+    print(f"Number of species: {NUM_SPECIES}")
+    NAME = f"{MODEL_NAME}_haute_garonne_{NUM_SPECIES}_species"
+    print(f"Species labels: {species_labels.keys()}")
+    
+    # Create datasets
+    train_dataset = CustomDataset(train, train=True, img_size=IMG_SIZE)
+    val_dataset = CustomDataset(val, train=False, img_size=IMG_SIZE)
+    torch.save(val_dataset, "val_dataset.pt")
+    
+    # Create data loaders
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=True,
+        num_workers=NUM_WORKERS,
+        pin_memory=True,
+        persistent_workers=True,
+    )
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=BATCH_SIZE,
+        shuffle=False,
+        num_workers=NUM_WORKERS,
+        pin_memory=True,
+        persistent_workers=True,
+    )
+    
+    # Build model
+    model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
+    in_features = model.classifier.linear.in_features
+    model.classifier.linear = torch.nn.Linear(in_features, NUM_SPECIES)
+    
+    # Set up training
+    criterion = torch.nn.CrossEntropyLoss()
+    optimizer = Adam(model.parameters(), lr=LR)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+    device = get_device()
+    model.to(device)
+    
+    # Training loop
+    best_acc = -1.0
+    best_f1 = -1.0
+    for epoch in range(NUM_EPOCHS):
+        start = time.perf_counter()
+        train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        val_loss, val_acc, macro_f1 = train_validate(model, val_loader, criterion, device)
+        scheduler.step()
+        print(f"[Epoch {epoch + 1}/{NUM_EPOCHS}] Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | Val Loss: {val_loss:.4f} Val acc: {val_acc:.4f} Val F1: {macro_f1:.4f}")
+        if macro_f1 > best_f1 or (macro_f1 == best_f1 and val_acc > best_acc):
+            start_save = time.perf_counter()
+            best_acc = val_acc
+            best_f1 = macro_f1
+            save_model(model, f"{NAME}", OUTPUT_DIR, device, IMG_SIZE)
+            end_save = time.perf_counter()
+            print(f"Save time: {end_save - start_save:.2f}s")
+        end = time.perf_counter()
+        print(f"Total time: {end - start:.2f}s")
+    print(f"Best accuracy: {best_acc} with F1-score: {best_f1}")
