@@ -59,7 +59,6 @@ def generate_tflite_with_weight(pt_model, resolution, tflite_fname, calib_loader
             converter.inference_input_type = tf.int8
 
             def representative_dataset_gen():
-
                 for i_b, (data, _) in enumerate(calib_loader):
                     if i_b == n_calibrate_sample:
                         break
@@ -74,38 +73,90 @@ def generate_tflite_with_weight(pt_model, resolution, tflite_fname, calib_loader
 
 
 if __name__ == '__main__':
-    # a simple script to convert the model to
     import sys
-    sys.path.append('')
     import json
-
-    cfg_path = sys.argv[1]
-    ckpt_path = sys.argv[2]
-    tflite_path = sys.argv[3]
-    from mcunet.tinynas.nn import ProxylessNASNets
-
-    cfg = json.load(open(cfg_path))
-    model = ProxylessNASNets.build_from_config(cfg)
-    if ckpt_path != 'None':
-        sd = torch.load(ckpt_path, map_location='cpu')
-        model.load_state_dict(sd['state_dict'])
-
-    # prepare calib loader
-    # calibrate the model for quantization
-    from torchvision import datasets, transforms
-    train_dataset = datasets.ImageFolder('/dataset/imagenet/train',
-                                         transform=transforms.Compose([
-                                             # transforms.Resize(int(resolution * 256 / 224)),
-                                             # transforms.CenterCrop(resolution),
-                                             transforms.RandomResizedCrop(cfg['resolution']),
-                                             transforms.RandomHorizontalFlip(),
-                                             transforms.ToTensor(),
-                                             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-                                         ]))
-    train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=1,
-        shuffle=True, num_workers=4)
-
-    generate_tflite_with_weight(model, cfg['resolution'], tflite_path, train_loader,
-                                n_calibrate_sample=500)
+    import os
+    
+    # Updated argument parsing to work with train.py models
+    if len(sys.argv) != 3:
+        print("Usage: python generate_tflite.py <model_path.pth> <output.tflite>")
+        print("Example: python generate_tflite.py models/mcunet-in2_haute_garonne_10_species.pth models/output.tflite")
+        sys.exit(1)
+    
+    model_path = sys.argv[1]  # Path to .pth file from train.py
+    tflite_path = sys.argv[2]  # Output .tflite path
+    
+    # Load the model saved by train.py
+    print(f"Loading model from: {model_path}")
+    model = torch.load(model_path, map_location=torch.device('cpu'))
+    model.eval()
+    print(f"Model loaded successfully: {model_path}")
+    # Extract model configuration and resolution
+    # For MCUNet models, we need to infer the resolution from the model name or config
+    model_name = os.path.basename(model_path).split('_')[0]  # Extract mcunet-in2 from filename
+    print(f"Model name extracted: {model_name}")
+    # Set resolution based on model type (adjust as needed)
+    resolution_map = {
+        # 'mcunet-in1': 160,
+        'mcunet-in2': 160, 
+        # 'mcunet-in4': 160,
+        # 'mcunet-in5': 160,
+        # 'mcunet-in6': 160
+    }
+    
+    resolution = resolution_map.get(model_name, 160)
+    print(f"Using resolution: {resolution}x{resolution}")
+    
+    # Load validation dataset for calibration
+    # Try to load the validation dataset saved by train.py
+    val_dataset_path = "val_dataset.pt"
+    if os.path.exists(val_dataset_path):
+        print(f"Loading validation dataset from: {val_dataset_path}")
+        val_dataset = torch.load(val_dataset_path, map_location=torch.device('cpu'))
+        calib_loader = torch.utils.data.DataLoader(
+            val_dataset, 
+            batch_size=1,
+            shuffle=True, 
+            num_workers=0  # Set to 0 for compatibility
+        )
+    else:
+        # Fallback: create a simple calibration dataset
+        print("No validation dataset found, creating dummy calibration data")
+        import torchvision.transforms as transforms
+        
+        # Create dummy data for calibration
+        dummy_data = []
+        for i in range(500):
+            # Create random tensor with correct shape
+            dummy_tensor = torch.randn(3, resolution, resolution)
+            dummy_data.append((dummy_tensor, 0))  # (image, dummy_label)
+        
+        calib_loader = torch.utils.data.DataLoader(
+            dummy_data,
+            batch_size=1,
+            shuffle=False
+        )
+    
+    print(f"Generating TensorFlow Lite model: {tflite_path}")
+    
+    # Generate the TensorFlow Lite model
+    try:
+        generate_tflite_with_weight(
+            model, 
+            resolution, 
+            tflite_path, 
+            calib_loader,
+            n_calibrate_sample=min(500, len(calib_loader))
+        )
+        print(f"Successfully generated TensorFlow Lite model: {tflite_path}")
+        
+        # Print file size
+        if os.path.exists(tflite_path):
+            size_mb = os.path.getsize(tflite_path) / (1024 * 1024)
+            print(f"Model size: {size_mb:.2f} MB")
+            
+    except Exception as e:
+        print(f"Error generating TensorFlow Lite model: {e}")
+        import traceback
+        traceback.print_exc()
 
