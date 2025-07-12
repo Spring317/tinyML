@@ -19,6 +19,25 @@ from train_bin import BinaryInsectDataset
 from CustomDataset import CustomDataset
 from utilities import get_device
 
+def calculate_other_precision_recall_f1(y_true, y_pred, num_classes):
+    cm = confusion_matrix(y_true, y_pred, labels=range(num_classes))
+
+    # Last class index
+    i = num_classes - 1
+
+    # Extract TP, FP, FN for the last class
+    TP = cm[i, i]
+    FP = cm[:, i].sum() - TP
+    FN = cm[i, :].sum() - TP
+    TN = cm.sum() - (TP + FP + FN)
+    
+    # Compute modified precision and recall
+    mod_precision = FP / (TP + FP) if (TP + FP) > 0 else 0.0
+    mod_recall = FP / (FP + TN) if (TP + FN) > 0 else 0.0
+    
+    
+    return mod_precision, mod_recall
+
 def evaluate_model(model_path, val_dataset_path, batch_size=32, num_workers=4, output_dir="evaluation_results"):
     """
     Comprehensive evaluation of a trained model with class-specific metrics.
@@ -43,34 +62,70 @@ def evaluate_model(model_path, val_dataset_path, batch_size=32, num_workers=4, o
     # Get class names
     # Try different approaches to get class names
     try:
-        # First attempt: check if the dataset has a class_to_idx attribute
-        class_to_idx = getattr(val_dataset, 'class_to_idx', None)
-        if class_to_idx:
-            class_names = list(class_to_idx.keys())
+        # NEW: Check if this is a BinaryInsectDataset
+        if hasattr(val_dataset, 'dataset') and hasattr(val_dataset.dataset, 'dominant_class_idx'):
+            # This is our BinaryInsectDataset
+            binary_dataset = val_dataset.dataset
+            dominant_class_name = binary_dataset.dataset.classes[binary_dataset.dominant_class_idx]
+            class_names = [dominant_class_name, "Other Species"]
+            print(f"Detected binary classification dataset:")
+            print(f"  Class 0: {class_names[0]} (dominant species)")
+            print(f"  Class 1: {class_names[1]} (all others)")
+        elif isinstance(val_dataset, BinaryInsectDataset):
+            # Direct BinaryInsectDataset instance
+            dominant_class_name = val_dataset.dataset.classes[val_dataset.dominant_class_idx]
+            class_names = [dominant_class_name, "Other Species"]
+            print(f"Detected binary classification dataset:")
+            print(f"  Class 0: {class_names[0]} (dominant species)")
+            print(f"  Class 1: {class_names[1]} (all others)")
         else:
-            # Second attempt: check for species_labels attribute
-            species_labels = getattr(val_dataset, 'species_labels', None)
-            if species_labels:
-                class_names = list(species_labels.keys())
+            # First attempt: check if the dataset has a class_to_idx attribute
+            class_to_idx = getattr(val_dataset, 'class_to_idx', None)
+            if class_to_idx:
+                class_names = list(class_to_idx.keys())
             else:
-                # Third attempt: check for classes attribute
-                classes = getattr(val_dataset, 'classes', None)
-                if classes:
-                    class_names = classes
+                # Second attempt: check for species_labels attribute
+                species_labels = getattr(val_dataset, 'species_labels', None)
+                if species_labels:
+                    class_names = list(species_labels.keys())
                 else:
-                    # Fallback: use numeric class labels
-                    all_labels_set = set(val_dataset.tensors[1].numpy() if hasattr(val_dataset, 'tensors') else 
-                                        [label for _, label in val_dataset])
-                    class_names = [f"Class {i}" for i in sorted(all_labels_set)]
+                    # Third attempt: check for classes attribute
+                    classes = getattr(val_dataset, 'classes', None)
+                    if classes:
+                        class_names = classes
+                    else:
+                        # Fallback: Check model output size to determine if binary
+                        # Load model temporarily to check output size
+                        temp_model = torch.load(model_path, weights_only=False, map_location='cpu')
+                        if hasattr(temp_model, 'classifier') and hasattr(temp_model.classifier, 'linear'):
+                            num_model_classes = temp_model.classifier.linear.out_features
+                            if num_model_classes == 2:
+                                class_names = ["Dominant Species", "Other Species"]
+                                print("Detected binary classification from model output size")
+                            else:
+                                class_names = [f"Class {i}" for i in range(num_model_classes)]
+                        else:
+                            # Ultimate fallback
+                            class_names = ["Class 0", "Class 1"]
+                            
     except Exception as e:
         print(f"Warning: Could not extract class names automatically: {e}")
-        print("Using numeric class indices instead.")
-        # Extract unique labels from the dataset
-        all_labels = []
-        for _, label in val_dataset:
-            all_labels.append(label.item() if isinstance(label, torch.Tensor) else label)
-        unique_labels = sorted(set(all_labels))
-        class_names = [f"Class {i}" for i in unique_labels]
+        print("Checking model for binary classification...")
+        
+        # Check model output size as fallback
+        try:
+            temp_model = torch.load(model_path, weights_only=False, map_location='cpu')
+            if hasattr(temp_model, 'classifier') and hasattr(temp_model.classifier, 'linear'):
+                num_model_classes = temp_model.classifier.linear.out_features
+                if num_model_classes == 2:
+                    class_names = ["Dominant Species", "Other Species"]
+                    print("Using binary classification based on model output size")
+                else:
+                    class_names = [f"Class {i}" for i in range(num_model_classes)]
+            else:
+                class_names = ["Class 0", "Class 1"]  # Default binary
+        except:
+            class_names = ["Class 0", "Class 1"]  # Safe fallback
     
     num_classes = len(class_names)
     
@@ -133,9 +188,16 @@ def evaluate_model(model_path, val_dataset_path, batch_size=32, num_workers=4, o
         target_names=class_names,
         output_dict=True
     )
+       
+    print(report)
     
-    # Convert classification report to DataFrame for easier handling
+    # Convert classification report to DataFrame for easier handling\
     report_df = pd.DataFrame(report).transpose()
+    
+    #calculate precision and recall for the "Other Species" class
+    pred, rec = calculate_other_precision_recall_f1(all_labels, all_preds, num_classes)
+    report_df.loc['Other Species', 'precision'] = pred
+    report_df.loc['Other Species', 'recall'] = rec
     
     # Save classification report
     report_df.to_csv(f"{output_dir}/classification_report.csv")
@@ -212,8 +274,8 @@ def evaluate_model(model_path, val_dataset_path, batch_size=32, num_workers=4, o
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=class_names, yticklabels=class_names)
     plt.xlabel('Predicted')
     plt.ylabel('True')
-    plt.title('Confusion Matrix')
     plt.tight_layout()
+    plt.title('Confusion Matrix')
     plt.savefig(f"{output_dir}/confusion_matrix.png", dpi=300)
     
     # 2. Class F1 Scores

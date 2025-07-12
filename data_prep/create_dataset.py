@@ -15,6 +15,24 @@ class DatasetCreator:
     ):
         self.class_counter_path = class_counter_path
         self.number_of_dominant_classes = number_of_dominant_classes - 1
+        # self.save_class_counts_sorted_json = save_class_counts_sorted_json
+
+    def calculate_weight_samples(
+        self, label_counts: Dict[int, int]
+    ) -> Dict[int, float]:
+        """Calculates the weight for each class based on the number of samples.
+
+        Args:
+            label_counts (Dict[int, int]): Dictionary with class labels as keys and sample counts as values.
+
+        Returns:
+            Dict[int, float]: Dictionary with class labels as keys and weights as values.
+        """
+        total_samples = sum(label_counts.values())
+        weights = {
+            label: total_samples / count for label, count in label_counts.items()
+        }
+        return weights
 
     def split_dataset(
         self, dataset: list[Dict[str, int]], train_ratio: float = 0.8
@@ -41,7 +59,9 @@ class DatasetCreator:
 
         return train_dataset, val_dataset
 
-    def create_dataset(self, start_rank: int = 0) -> Tuple[list, list]:
+    def create_dataset(
+        self, start_rank: int = 0
+    ) -> Tuple[list, list, Dict[int, float]]:
         """
         Creates a dataset by loading the class counts from a JSON file.
 
@@ -169,4 +189,5 @@ class DatasetCreator:
         print(f"Training set size: {len(train)} samples")
         print(f"Validation set size: {len(val)} samples")
 
-        return train, val
+        weights = self.calculate_weight_samples(label_counts)
+        return train, val, weights

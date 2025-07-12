@@ -315,7 +315,7 @@ if __name__ == "__main__":
     NAME = f"{MODEL_NAME}_haute_garonne_{NUM_SPECIES}_{START_RANK}_species"
     print(f"Species labels: {species_labels.keys()}")
 
-    train, val = datacreator.create_dataset(START_RANK)
+    train, val, weights = datacreator.create_dataset(START_RANK)
 
     # Create datasets
     train_dataset = CustomDataset(train, train=True, img_size=IMG_SIZE)
@@ -340,20 +340,34 @@ if __name__ == "__main__":
         persistent_workers=True,
     )
 
+    # convert weights from dict to tensor
+    if weights is not None:
+        weights_tensor = torch.tensor(
+            [weights.get(i, 1.0) for i in range(NUM_SPECIES)],
+            dtype=torch.float32,
+        )
+    else:
+        weights_tensor = None
+    print(f"weights tensor: {weights_tensor}")
+
     # Build model - IMPORTANT: Use TOTAL_CLASSES instead of NUM_SPECIES
     model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
-    in_features = model.classifier.linear.in_features
-    model.classifier.linear = torch.nn.Linear(
+    in_features = model.classifier.linear.in_features  # type : ignore
+    model.classifier.linear = torch.nn.Linear(  # type: ignore
         in_features, NUM_SPECIES
     )  # Changed this line
 
     print(f"Model configured for {NUM_SPECIES} classes")
-
+    # Calculating weight for criterion for imbalanced dataset
+    class_weights = torch.tensor(
+        [1.0] * NUM_SPECIES, dtype=torch.float32
+    )  # Placeholder for class weights
     # Set up training
-    criterion = torch.nn.CrossEntropyLoss()
+
+    device = get_device()
+    criterion = torch.nn.CrossEntropyLoss(weight=weights_tensor.to(device))
     optimizer = Adam(model.parameters(), lr=LR)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
-    device = get_device()
     model.to(device)
 
     # Training loop
