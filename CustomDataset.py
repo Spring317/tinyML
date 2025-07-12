@@ -1,6 +1,6 @@
 import torch
 from PIL import Image
-from typing import Tuple, List, Callable, Union
+from typing import Dict, Tuple, List, Callable, Union
 from torch.utils.data import Dataset, get_worker_info
 from torchvision import transforms
 from ColorDistorter import ColorDistorter
@@ -9,19 +9,26 @@ from dataset_builder.core.utility import load_manifest_parquet
 
 
 class CustomDataset(Dataset):
+    """
+    A custom dataset creator which loads a list of dictionaries contain image path and its label and convert it to tensor to used in training and evaluation
+
+    Args:
+
+        data (List[Dict[str, int]): Either a path to a parquet file containing image paths and labels or a list of tuples with image paths and labels.
+        train (bool): If True, applies data augmentation. Defaults to True.
+        img_size (Tuple[int, int]): The size to which images will be resized. Defaults to (160, 160).
+    """
 
     def __init__(
         self,
-        data: Union[str, List[Tuple[str, int]]],
+        data: List[Dict[str, int]],
         train: bool = True,
-        img_size: Tuple[int, int] = (50, 50),
-        
+        img_size: Tuple[int, int] = (160, 160),
     ):
         super().__init__()
-        if isinstance(data, str):
-            self.image_label_with_correct_labels = load_manifest_parquet(data)
-        else:
-            self.image_label_with_correct_labels = data
+        self.image_label_with_correct_labels = data
+        self.image_paths = [item["image"] for item in data]
+        self.labels = [item["label"] for item in data]
         self.train = train
         self.img_size = img_size
 
@@ -29,8 +36,10 @@ class CustomDataset(Dataset):
         return len(self.image_label_with_correct_labels)
 
     def __getitem__(self, index: int) -> Tuple[torch.Tensor, int]:
-        img_path, label = self.image_label_with_correct_labels[index]
-        image = Image.open(img_path).convert("RGB")
+        image_path = self.image_paths[index]
+        label = self.labels[index]
+        # supress pyright warning
+        image = Image.open(image_path).convert("RGB")  # type: ignore
 
         worker_info = get_worker_info()
         worker_id = worker_info.id if worker_info else 0
