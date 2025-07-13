@@ -191,7 +191,7 @@ If you want to test with a large amount of models to find out which one has the 
 ![Precision and Recall](evaluation_results/precision_recall.png)
 
 <!-- #### Class Confidence Distribution
-![Class Confidence](evaluation_results/class_confidence.png) --> -->
+![Class Confidence](evaluation_results/class_confidence.png) -->
 
 
 ## References
