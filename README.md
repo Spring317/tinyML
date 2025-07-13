@@ -233,15 +233,7 @@ If you want to test with a large amount of models to find out which one has the 
 
 3. [Raspberry Pi Documentation](https://www.raspberrypi.org/documentation/) - Official Raspberry Pi documentation.
 
-## Acknowledgements
-
-This work was built upon the foundation laid by the MIT Han Lab's research on TinyML and edge computing. We would like to thank the original authors of MCUNet for their groundbreaking work in bringing deep learning to microcontroller-class devices.
-   
-We also acknowledge the contributors to the iNaturalist dataset, which has been instrumental in training and evaluating our models for species classification.
-
 ## Citation
-
-If you use this codebase for your research, please cite the original MCUNet papers:
 
 ```
 @article{lin2020mcunet,
