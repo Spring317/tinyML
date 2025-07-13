@@ -133,59 +133,59 @@ If you want to test with a large amount of models to find out which one has the 
 
 7.  For Deploying into Raspberry Pi 4b, please refer to the deployment repo [here](https://github.com/Spring317/mcunet-onnx-deploy)
 
-## Results:
-### Metrics:
-
-1. Regular accuracy, recall, precision, F1-score for dominant classes
-   
-2. Error rate for others classes as follow:
-
-### Modified Precision
-$$\text{mod\_precision} = \begin{cases} 
-\frac{FP}{TP + FP} & \text{if } (TP + FP) > 0 \\
-0.0 & \text{otherwise}
-\end{cases}$$
-
-### Modified Recall
-$$\text{mod\_recall} = \begin{cases} 
-\frac{FP}{FP + TN} & \text{if } (FP + TN) > 0 \\
-0.0 & \text{otherwise}
-\end{cases}$$
-
-### Modified F1-Score
-$$\text{mod\_f1} = \begin{cases} 
-\frac{2 \times \text{mod\_precision} \times \text{mod\_recall}}{\text{mod\_precision} + \text{mod\_recall}} & \text{if } (\text{mod\_precision} + \text{mod\_recall}) > 0 \\
-0.0 & \text{otherwise}
-\end{cases}$$
-
-### Where:
-- $TP$ = True Positives
-- $FP$ = False Positives  
-- $TN$ = True Negatives
-- $FN$ = False Negatives
-
-### Note:
-These modified metrics focus on tracking false positives (dominant classes misclassified as "Other Species") to measure the error rate when the model incorrectly predicts dominant species as others.
-
-### Experimental setup:
-
-* Superclass: Insecta 
-* Dominant classes: from 2 to 8 (14 in the error figure) classes (Cover 50% (65%) of the dominant species in the Insecta dataset)
-* Epoch: 50
-* Batch size: 64
-* Learning read: 0.001
-* Number of worker: 8
-* Model type: mcunet-in2
-* Image size: 160x160
-
-### Results: 
-
-#### Accuracy and F1 scores of different classes setup
-
-![Performance vs model complexity](performance_vs_complexity.png)
-
-#### My come-up metrics for others class (IDK if it correct).
-![Error rate (the rate that dominant classes is missed predicted as others)](other_species_performance_trends.png)
+<!-- ## Results: -->
+<!-- ### Metrics: -->
+<!---->
+<!-- 1. Regular accuracy, recall, precision, F1-score for dominant classes -->
+<!---->
+<!-- 2. Error rate for others classes as follow: -->
+<!---->
+<!-- ### Modified Precision -->
+<!-- $$\text{mod\_precision} = \begin{cases}  -->
+<!-- \frac{FP}{TP + FP} & \text{if } (TP + FP) > 0 \\ -->
+<!-- 0.0 & \text{otherwise} -->
+<!-- \end{cases}$$ -->
+<!---->
+<!-- ### Modified Recall -->
+<!-- $$\text{mod\_recall} = \begin{cases}  -->
+<!-- \frac{FP}{FP + TN} & \text{if } (FP + TN) > 0 \\ -->
+<!-- 0.0 & \text{otherwise} -->
+<!-- \end{cases}$$ -->
+<!---->
+<!-- ### Modified F1-Score -->
+<!-- $$\text{mod\_f1} = \begin{cases}  -->
+<!-- \frac{2 \times \text{mod\_precision} \times \text{mod\_recall}}{\text{mod\_precision} + \text{mod\_recall}} & \text{if } (\text{mod\_precision} + \text{mod\_recall}) > 0 \\ -->
+<!-- 0.0 & \text{otherwise} -->
+<!-- \end{cases}$$ -->
+<!---->
+<!-- ### Where: -->
+<!-- - $TP$ = True Positives -->
+<!-- - $FP$ = False Positives   -->
+<!-- - $TN$ = True Negatives -->
+<!-- - $FN$ = False Negatives -->
+<!---->
+<!-- ### Note: -->
+<!-- These modified metrics focus on tracking false positives (dominant classes misclassified as "Other Species") to measure the error rate when the model incorrectly predicts dominant species as others. -->
+<!---->
+<!-- ### Experimental setup: -->
+<!---->
+<!-- * Superclass: Insecta  -->
+<!-- * Dominant classes: from 2 to 8 (14 in the error figure) classes (Cover 50% (65%) of the dominant species in the Insecta dataset) -->
+<!-- * Epoch: 50 -->
+<!-- * Batch size: 64 -->
+<!-- * Learning read: 0.001 -->
+<!-- * Number of worker: 8 -->
+<!-- * Model type: mcunet-in2 -->
+<!-- * Image size: 160x160 -->
+<!---->
+<!-- ### Results:  -->
+<!---->
+<!-- #### Accuracy and F1 scores of different classes setup -->
+<!---->
+<!-- ![Performance vs model complexity](performance_vs_complexity.png) -->
+<!---->
+<!-- #### My come-up metrics for others class (IDK if it correct). -->
+<!-- ![Error rate (the rate that dominant classes is missed predicted as others)](other_species_performance_trends.png) -->
 
 <!-- #### Precision and Recall by Class
 ![Precision and Recall](evaluation_results/precision_recall.png)
