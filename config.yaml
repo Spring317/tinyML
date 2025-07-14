@@ -4,10 +4,10 @@ global:
   overwrite: true
 
 paths:
-  src_dataset: "/home/quydx/mcunet_full/inat_2017"
-  dst_dataset: "/home/quydx/iNaturelist_transfer_learning_pytorch/data/haute_garonne"
+  src_dataset: "haute_garonne"
+  dst_dataset: "haute_garonne"
   web_crawl_output_json: "/home/quydx/iNaturelist_transfer_learning_pytorch/output/haute_garonne.json"
-  output_dir: "/home/quydx/iNaturelist_transfer_learning_pytorch/output"
+  output_dir: "output"
 
 web_crawl:
   total_pages: 104
