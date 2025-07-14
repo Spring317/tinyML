@@ -29,10 +29,15 @@ class PipeModel(nn.Module):
         # x = x.to(self.device)
         self.model1.eval()
         self.model2.eval()
+        self.num_classes = torch.tensor(self.num_classes).to(self.device)
         with torch.no_grad():
             output1 = self.model1(x)
-            if output1.argmax(dim=1).item() == (
-                self.num_classes
+
+            _, pred = torch.max(output1, 1)
+
+            # print(f"Predictions from first model: {pred}")
+            if (
+                pred == self.num_classes
             ):  # Assuming last class is the one to trigger second model
                 output2 = self.model2(x)
                 return output2
