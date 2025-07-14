@@ -8,6 +8,13 @@ import yaml
 
 
 class DatasetCreator:
+    """
+    Class to create a dataset from class counts and split it into training and validation sets.
+    Args:
+        class_counter_path (str): Path to the JSON file containing class counts.
+        number_of_dominant_classes (int): Number of dominant classes to consider for the dataset.
+    """
+
     def __init__(
         self,
         class_counter_path: str = "data_prep/class_counts_sorted.json",
