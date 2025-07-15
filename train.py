@@ -54,7 +54,7 @@ def parse_args() -> Dict[str, Any]:
             "mcunet-in4",
             "mcunet-in5",
             "mcunet-in6",
-            "convnext",
+            "convnext-largeconvnext-tinyconvnext-base",
         ],
         help="MCUNet model variant (default: mcunet-in2)",
     )
