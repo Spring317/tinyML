@@ -8,8 +8,9 @@ from torch.utils.data import DataLoader
 
 from CustomDataset import CustomDataset
 from mcunet.model_zoo import build_model
-from utilities import get_device, manifest_generator_wrapper
-from data_prep.create_dataset import DatasetCreator
+
+# from utilities import get_device, manifest_generator_wrapper
+# from data_prep.create_dataset import DatasetCreator
 from models.model_handler import ModelHandler
 from data_prep.data_loader import DataLoaderCreator
 from models.convnext_model import ConvNeXt160
@@ -202,7 +203,7 @@ if __name__ == "__main__":
             print(
                 f"Saving model with accuracy: {best_acc:.4f} and F1-score: {best_f1:.4f}"
             )
-            name = f"{MODEL_NAME}_{DOMINANCE_THRESHOLD}_epoch_{epoch + 1}_acc_{best_acc:.4f}_f1_{best_f1:.4f}.pth"
+            name = f"{MODEL_NAME}_{DOMINANCE_THRESHOLD}_epoch_{epoch + 1}_acc_{best_acc:.4f}_f1_{best_f1:.4f}"
             model_handler.save_model(model, name, OUTPUT_DIR, IMG_SIZE)
             end_save = time.perf_counter()
             print(f"Save time: {end_save - start_save:.2f}s")
