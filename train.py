@@ -196,10 +196,10 @@ if __name__ == "__main__":
         print(
             f"[Epoch {epoch + 1}/{NUM_EPOCHS}] Train Loss: {train_loss:.4f} Acc: {train_acc:.4f} | Val Loss: {val_loss:.4f} Val acc: {val_acc:.4f} Val F1: {macro_f1:.4f}"
         )
-        if macro_f1 > best_f1 or (macro_f1 == best_f1 and val_acc > best_acc):
+        if macro_f1 > best_f1:
             start_save = time.perf_counter()
             best_acc = val_acc
-            besT_f1 = macro_f1
+            best_f1 = macro_f1
             print(
                 f"Saving model with accuracy: {best_acc:.4f} and F1-score: {best_f1:.4f}"
             )
