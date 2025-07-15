@@ -138,13 +138,24 @@ if __name__ == "__main__":
     else:
         weights_tensor = None
     print(f"weights tensor: {weights_tensor}")
-    if MODEL_NAME == "convnext":
+    if MODEL_NAME == "convnext-tiny":
         # Use ConvNeXt model
         # Define model
         model = ConvNeXt160(
             num_classes=NUM_SPECIES, pretrained=True, convext_ver="convnext_tiny"
         )
-
+    elif MODEL_NAME == "convnext-base":
+        # Use ConvNeXt model
+        # Define model
+        model = ConvNeXt160(
+            num_classes=NUM_SPECIES, pretrained=True, convext_ver="convnext_base"
+        )
+    elif MODEL_NAME == "convnext-large":
+        # Use ConvNeXt model
+        # Define model
+        model = ConvNeXt160(
+            num_classes=NUM_SPECIES, pretrained=True, convext_ver="convnext_large"
+        )
     else:
         # Build model - IMPORTANT: Use TOTAL_CLASSES instead of NUM_SPECIES
         model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
