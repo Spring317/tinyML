@@ -12,6 +12,7 @@ from utilities import get_device, manifest_generator_wrapper
 from data_prep.create_dataset import DatasetCreator
 from models.model_handler import ModelHandler
 from data_prep.data_loader import DataLoaderCreator
+from models.convnext_model import ConvNeXt160
 
 
 def parse_args() -> Dict[str, Any]:
@@ -47,7 +48,14 @@ def parse_args() -> Dict[str, Any]:
         "--model",
         type=str,
         default="mcunet-in2",
-        choices=["mcunet-in1", "mcunet-in2", "mcunet-in4", "mcunet-in5", "mcunet-in6"],
+        choices=[
+            "mcunet-in1",
+            "mcunet-in2",
+            "mcunet-in4",
+            "mcunet-in5",
+            "mcunet-in6",
+            "convnext",
+        ],
         help="MCUNet model variant (default: mcunet-in2)",
     )
 
@@ -130,13 +138,20 @@ if __name__ == "__main__":
     else:
         weights_tensor = None
     print(f"weights tensor: {weights_tensor}")
+    if MODEL_NAME == "convnext":
+        # Use ConvNeXt model
+        # Define model
+        model = ConvNeXt160(
+            num_classes=NUM_SPECIES, pretrained=True, convext_ver="convnext_tiny"
+        )
 
-    # Build model - IMPORTANT: Use TOTAL_CLASSES instead of NUM_SPECIES
-    model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
-    in_features = model.classifier.linear.in_features  # type : ignore
-    model.classifier.linear = torch.nn.Linear(  # type: ignore
-        in_features, NUM_SPECIES
-    )  # Changed this line
+    else:
+        # Build model - IMPORTANT: Use TOTAL_CLASSES instead of NUM_SPECIES
+        model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
+        in_features = model.classifier.linear.in_features  # type : ignore
+        model.classifier.linear = torch.nn.Linear(  # type: ignore
+            in_features, NUM_SPECIES
+        )  # Changed this line
 
     print(f"Model configured for {NUM_SPECIES} classes")
     # Calculating weight for criterion for imbalanced dataset
