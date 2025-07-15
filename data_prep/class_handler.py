@@ -8,7 +8,7 @@ class ClassNameHandler:
     Handles class names and metadata for dataset creation and model evaluation.
     """
     
-    def __init__(self, class_counter_path: str = "class_counts_sorted.json"):
+    def __init__(self, class_counter_path: str = "data_prep/class_counts_sorted.json"):
         self.class_counter_path = class_counter_path
         self.class_names = []
         self.num_classes = 0
@@ -114,8 +114,8 @@ class ClassNameHandler:
             self.class_names = ["Class 0", "Class 1", "Class 2", "Other"]
             self.num_classes = 4
             return self.class_names
-            
-    def get_class_info(self, start_rank: int = 0, number_of_dominant_classes: int = 3, 
+
+    def get_class_info(self, start_rank: int = 0, number_of_dominant_classes: int = 3,
                       model_path: str = None) -> Tuple[List[str], int, Dict[str, int]]:
         """
         Get comprehensive class information, trying JSON first, then model fallback.
@@ -187,11 +187,11 @@ def get_class_info_for_evaluation(start_rank: int = 0, number_of_dominant_classe
     handler = ClassNameHandler()
     return handler.get_class_info(start_rank, number_of_dominant_classes, model_path)
 
-if __name__ == "__main__":
-    # Test the class handler
-    handler = ClassNameHandler()
+# if __name__ == "__main__":
+#     # Test the class handler
+#     handler = ClassNameHandler()
     
-    # Test with default parameters
-    class_names, num_classes, class_to_idx = handler.get_class_info(start_rank=0, number_of_dominant_classes=3)
-    handler.print_class_summary()
-    handler.save_class_info()
+#     # Test with default parameters
+#     class_names, num_classes, class_to_idx = handler.get_class_info(start_rank=0, number_of_dominant_classes=3)
+#     handler.print_class_summary()
+#     handler.save_class_info()

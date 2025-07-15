@@ -20,13 +20,11 @@ class DataLoaderCreator:
         num_workers: int = 4,
         dominant_threshold: float = 0.2,
         start_rank: int = 0,
-        full_dataset: bool = False,
     ):
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.dominant_threshold = dominant_threshold
         self.start_rank = start_rank
-        self.full_dataset = full_dataset
 
     def create_dataloader(self):
         """
@@ -48,9 +46,7 @@ class DataLoaderCreator:
 
         print(f"Species labels: {species_labels.keys()}")
 
-        train, val, weights = datacreator.create_dataset(
-            self.start_rank, full_dataset=self.full_dataset
-        )
+        train, val, weights = datacreator.create_dataset(self.start_rank)
         train_dataset = CustomDataset(train, train=True, img_size=(160, 160))
         val_dataset = CustomDataset(val, train=False, img_size=(160, 160))
 
