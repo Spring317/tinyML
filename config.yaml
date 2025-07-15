@@ -13,8 +13,8 @@ paths:
   dst_dataset: "/home/quydx/tinyML/data_prep/haute_garonne"
 
   #I am too lazy to change the path in the code, so I just put it here. Please don't touch it T.T
-  web_crawl_output_json: "/home/quydx/iNaturelist_transfer_learning_pytorch/output/haute_garonne.json"
-  output_dir: "/home/quydx/iNaturelist_transfer_learning_pytorch/output"
+  web_crawl_output_json: "/home/quydx/tinyML/output/haute_garonne.json"
+  output_dir: "output"
 
 #In case you want to have more updated dataset, you can use the web_crawl to download the latest data from iNaturalist
 #Else don't touch this part
@@ -27,4 +27,4 @@ web_crawl:
 train_val_split:
   train_size: 0.8
   random_state: 42
-  dominant_threshold: 0.9
+  dominant_threshold: 1.0
