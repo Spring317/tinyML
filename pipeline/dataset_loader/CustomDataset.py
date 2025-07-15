@@ -34,7 +34,7 @@ class CustomDataset(Dataset):
         self,
         data: Union[str, List[Tuple[str, int]]],
         train: bool = True,
-        img_size: Tuple[int, int] = (224, 224),
+        img_size: Tuple[int, int] = (160, 160),
     ):
         if isinstance(data, str):
             self.image_label_with_correct_labels = load_manifest_parquet(data)
@@ -68,7 +68,10 @@ class CustomDataset(Dataset):
             )
         else:
             transform = transforms.Compose(
-                [CentralCropResize(central_fraction=0.875, size=self.img_size)]
+                [
+                    CentralCropResize(central_fraction=0.875, size=self.img_size),
+                    transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                ]
             )
 
         image = transform(image)  # type: ignore
