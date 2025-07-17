@@ -48,14 +48,21 @@ class CustomDataset(Dataset):
         if self.train:
             transform: Callable[[Image.Image], torch.Tensor] = transforms.Compose(
                 [
+                    transforms.RandomResizedCrop(
+                        self.img_size, scale=(0.05, 1.0), ratio=(0.75, 1.33)
+                    ),
                     transforms.RandomHorizontalFlip(),
                     ColorDistorter(ordering=color_ordering),
-                    CentralCropResize(central_fraction=0.875, size=self.img_size),
+                    transforms.ToTensor(),
+                    # transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
                 ]
             )
         else:
             transform = transforms.Compose(
-                [CentralCropResize(central_fraction=0.875, size=self.img_size)]
+                [
+                    CentralCropResize(central_fraction=0.875, size=self.img_size),
+                    # transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                ]
             )
 
         image = transform(image)  # type: ignore

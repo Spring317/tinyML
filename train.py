@@ -1,15 +1,9 @@
 import time
 import argparse
 from typing import Dict, Any
-
 import torch
 from torch.optim import Adam
-
-# from torch.utils.data import DataLoader
-#
-# from CustomDataset import CustomDataset
 from mcunet.model_zoo import build_model
-
 from utilities import get_device
 from models.model_handler import ModelHandler
 from data_prep.data_loader import DataLoaderCreator
@@ -130,7 +124,9 @@ if __name__ == "__main__":
         dominant_threshold=DOMINANCE_THRESHOLD,
         start_rank=START_RANK,
     )
-    train_loader, val_loader, weights, NUM_SPECIES = data_loader.create_dataloader()
+    train_loader, val_loader, weights, NUM_SPECIES, small_species_label = (
+        data_loader.create_dataloader()
+    )
 
     # convert weights from dict to tensor
     if weights is not None:
@@ -159,6 +155,12 @@ if __name__ == "__main__":
         model = ConvNeXt160(
             num_classes=NUM_SPECIES, pretrained=True, convext_ver="convnext_large"
         )
+
+    # if MODEL_NAME == "convnext-large":
+    #     model = convnext_large_builder(
+    #         device, num_outputs=NUM_SPECIES, start_with_weight=True, input_size=IMG_SIZE
+    #     )
+
     else:
         # Build model - IMPORTANT: Use TOTAL_CLASSES instead of NUM_SPECIES
         model, image_size, description = build_model(net_id=MODEL_NAME, pretrained=True)
@@ -167,6 +169,7 @@ if __name__ == "__main__":
             in_features, NUM_SPECIES
         )  # Changed this line
 
+    device = get_device()
     print(f"Model configured for {NUM_SPECIES} classes")
     # Calculating weight for criterion for imbalanced dataset
     class_weights = torch.tensor(
@@ -174,16 +177,18 @@ if __name__ == "__main__":
     )  # Placeholder for class weights
     # Set up training
 
-    device = get_device()
     criterion = torch.nn.CrossEntropyLoss(weight=weights_tensor.to(device))
     optimizer = Adam(model.parameters(), lr=LR)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.5)
+    # if MODEL_NAME == "convnext-large":
+    #     model = model
+    # else:
     model.to(device)
     model_handler = ModelHandler(device)
 
     # Training loop
-    best_acc = -1.0
-    best_f1 = -1.0
+    best_acc = 0.0
+    best_f1 = 0.0
     for epoch in range(NUM_EPOCHS):
         start = time.perf_counter()
         train_loss, train_acc = model_handler.train_one_epoch(
